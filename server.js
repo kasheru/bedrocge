@@ -111,7 +111,9 @@ const server = http.createServer(async (req, res) => {
     }
     // ---- enquiries (public submit, admin read/delete) ----
     if (p === '/api/enquiry' && req.method === 'POST') {
-      const ip = req.socket.remoteAddress;
+      // behind the local Caddy proxy every request comes from 127.0.0.1, so trust X-Forwarded-For only from there
+      const peer = req.socket.remoteAddress;
+      const ip = /^(::1|::ffff:127\.0\.0\.1|127\.0\.0\.1)$/.test(peer) ? String(req.headers['x-forwarded-for'] || peer).split(',')[0].trim() : peer;
       const now = Date.now(), hits = (enqHits.get(ip) || []).filter((t) => now - t < 3600e3);
       if (hits.length >= 5) return send(res, 429, { error: 'Too many enquiries. Please try again later.' });
       const b = JSON.parse((await readBody(req, 50e3)).toString() || '{}');
@@ -181,4 +183,4 @@ const server = http.createServer(async (req, res) => {
     send(res, 500, { error: e.message });
   }
 });
-server.listen(PORT, () => console.log(`BEDROC site: http://localhost:${PORT}   Admin: http://localhost:${PORT}/admin`));
+server.listen(PORT, process.env.HOST || '0.0.0.0', () => console.log(`BEDROC site: http://localhost:${PORT}   Admin: http://localhost:${PORT}/admin`));
