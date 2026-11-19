@@ -1,0 +1,320 @@
+{
+  "settings": {
+    "siteTitle": "BEDROC Ground Engineering",
+    "metaDescription": "Specialist ground engineering and geotechnical company delivering execution-focused solutions for complex subsurface and structural challenges.",
+    "defaultTheme": "light",
+    "navyColor": "#0A2347",
+    "accentColor": "#B85009",
+    "highlightColor": "#F2A869"
+  },
+  "header": {
+    "wordmark": "BEDROC",
+    "subtitle": "Ground Engineering",
+    "ctaLabel": "Get in Touch",
+    "ctaHref": "#contact",
+    "nav": [
+      {
+        "label": "Home",
+        "href": "#home",
+        "enabled": true
+      },
+      {
+        "label": "About Us",
+        "href": "#about",
+        "enabled": true
+      },
+      {
+        "label": "Services",
+        "href": "#capabilities",
+        "enabled": false
+      },
+      {
+        "label": "Case Studies",
+        "href": "#",
+        "enabled": false
+      },
+      {
+        "label": "Contact",
+        "href": "#contact",
+        "enabled": true
+      }
+    ]
+  },
+  "hero": {
+    "visible": true,
+    "eyebrow": "The Specialist Standard",
+    "headline": "We transform ground uncertainty into *engineered confidence.*",
+    "intro": "BEDROC Ground Engineering Private Limited is a specialist ground engineering and geotechnical company. We deliver technically advanced, execution-focused solutions for complex subsurface and structural challenges.",
+    "ctaLabel": "Get in Touch",
+    "ctaHref": "#contact",
+    "linkLabel": "Explore Capabilities",
+    "linkHref": "#capabilities",
+    "stripText": "Precision. Stability. Delivered.",
+    "scrollLabel": "Scroll"
+  },
+  "disciplines": {
+    "visible": true,
+    "label": "01 — What We Do",
+    "title": "Core *disciplines*",
+    "linkLabel": "View the intervention matrix",
+    "linkHref": "#capabilities",
+    "items": [
+      {
+        "title": "Geotechnical Engineering",
+        "icon": "layers"
+      },
+      {
+        "title": "Ground Improvement",
+        "icon": "compact"
+      },
+      {
+        "title": "Grouting Systems",
+        "icon": "grout"
+      },
+      {
+        "title": "Slope Stabilization",
+        "icon": "slope"
+      },
+      {
+        "title": "Underground Risk Mitigation",
+        "icon": "tunnel"
+      },
+      {
+        "title": "Infrastructure Rehabilitation",
+        "icon": "bridge"
+      }
+    ]
+  },
+  "about": {
+    "visible": true,
+    "label": "02 — About Us",
+    "title": "Who we *are*",
+    "statement": "BEDROC Ground Engineering Private Limited is a specialist ground engineering and geotechnical company. We deliver technically advanced, execution-focused solutions for complex subsurface and structural challenges. *We transform ground uncertainty into engineered confidence.*"
+  },
+  "capabilities": {
+    "visible": true,
+    "label": "03 — Capabilities",
+    "title": "Geotechnical *intervention* matrix",
+    "donutLabel": "Interventions",
+    "categories": [
+      {
+        "name": "Ground & Foundations",
+        "items": [
+          "Ground Improvement",
+          "Foundation Strengthening",
+          "Mine Dump Stabilization"
+        ]
+      },
+      {
+        "name": "Grouting Systems",
+        "items": [
+          "Pressure Grouting",
+          "Microfine Cement Grouting",
+          "PU / Resin Injection"
+        ]
+      },
+      {
+        "name": "Slopes & Excavation",
+        "items": [
+          "Slope Stabilization",
+          "Soil Nailing & Anchors",
+          "Excavation Support"
+        ]
+      },
+      {
+        "name": "Specialty & Underground",
+        "items": [
+          "Tunnel Support",
+          "Seepage Control",
+          "Emergency Risk Mitigation"
+        ]
+      }
+    ]
+  },
+  "diagram": {
+    "visible": true,
+    "label": "04 — Diagnostic Map",
+    "title": "Where the ground *fails*",
+    "intro": "Eight geotechnical and infrastructure vulnerabilities, shown in one cross-section.",
+    "mapTitle": "Diagnostic Map: Geotechnical & Infrastructure Vulnerabilities",
+    "labels": [
+      "Slope Failure",
+      "Water Ingress",
+      "Tunnel Distress",
+      "Underground Voids",
+      "Settlement",
+      "Mine Dump Instability",
+      "Foundation Distress",
+      "Weak Ground"
+    ]
+  },
+  "diagnostics": {
+    "visible": true,
+    "label": "05 — Where We Come In",
+    "title": "Where do *we* come in?",
+    "intro": "Eight ground and infrastructure vulnerabilities, and the interventions BEDROC brings to each. Select one to see where we step in.",
+    "footnote": "Indicative mapping — to be confirmed against BEDROC's engineering scope.",
+    "vulnerabilities": [
+      {
+        "name": "Slope Failure",
+        "fixes": [
+          "Slope Stabilization",
+          "Soil Nailing & Anchors"
+        ]
+      },
+      {
+        "name": "Water Ingress",
+        "fixes": [
+          "Pressure Grouting",
+          "PU / Resin Injection",
+          "Seepage Control"
+        ]
+      },
+      {
+        "name": "Tunnel Distress",
+        "fixes": [
+          "Tunnel Support",
+          "Pressure Grouting"
+        ]
+      },
+      {
+        "name": "Underground Voids",
+        "fixes": [
+          "Pressure Grouting",
+          "Microfine Cement Grouting"
+        ]
+      },
+      {
+        "name": "Settlement",
+        "fixes": [
+          "Ground Improvement",
+          "Foundation Strengthening",
+          "PU / Resin Injection"
+        ]
+      },
+      {
+        "name": "Mine Dump Instability",
+        "fixes": [
+          "Mine Dump Stabilization",
+          "Slope Stabilization"
+        ]
+      },
+      {
+        "name": "Foundation Distress",
+        "fixes": [
+          "Foundation Strengthening",
+          "Microfine Cement Grouting"
+        ]
+      },
+      {
+        "name": "Weak Ground",
+        "fixes": [
+          "Ground Improvement",
+          "Pressure Grouting"
+        ]
+      }
+    ]
+  },
+  "why": {
+    "visible": true,
+    "label": "06 — Why BEDROC",
+    "title": "Why clients *choose* us",
+    "items": [
+      {
+        "title": "Collective Industry Expertise",
+        "text": "Well-versed team with cumulative experience in complex stabilization environments."
+      },
+      {
+        "title": "Execution-Led Engineering",
+        "text": "Solutions designed around site realities, geology, access constraints, and safety."
+      },
+      {
+        "title": "Pan India Capability",
+        "text": "Proven ability to mobilize and execute in urban, remote, hilly, mining, and high-risk zones."
+      },
+      {
+        "title": "Customized Site Methodologies",
+        "text": "No standard templates. Every intervention is precisely engineered for the specific site condition."
+      }
+    ]
+  },
+  "method": {
+    "visible": true,
+    "label": "07 — Our Method",
+    "title": "The execution *differentiator*",
+    "formulaTerms": [
+      "Technical Maturity",
+      "Rapid Mobilization",
+      "Custom Engineering"
+    ],
+    "formulaResult": "Execution Certainty",
+    "points": [
+      {
+        "title": "Deep Technical Leadership",
+        "text": "Complex geology expertise"
+      },
+      {
+        "title": "Customized Engineering Solutions",
+        "text": "Value-engineered systems; no standard templates"
+      },
+      {
+        "title": "Fast Response Capability",
+        "text": "Rapid mobilization for high-risk zones"
+      },
+      {
+        "title": "Practical Site Execution",
+        "text": "Method-led, safety-first operations"
+      }
+    ]
+  },
+  "sectors": {
+    "visible": true,
+    "label": "08 — Sectors",
+    "title": "Infrastructure *ecosystems*",
+    "items": [
+      "Highways & Expressways",
+      "Railways & Metro",
+      "Tunnels & Underground",
+      "Mining & Dams",
+      "Industrial Infrastructure",
+      "Urban Developments"
+    ]
+  },
+  "contact": {
+    "visible": true,
+    "label": "09 — Contact",
+    "statement": "BEDROC builds confidence from the ground up by transforming geotechnical challenges into *engineered certainty.*",
+    "website": "www.bedrocge.com",
+    "email": "info@bedrocge.com",
+    "phone": "9667780829",
+    "formNameLabel": "Name",
+    "formOrgLabel": "Organisation",
+    "formEmailLabel": "Email",
+    "formMessageLabel": "Project details",
+    "submitLabel": "Send Enquiry",
+    "successMessage": "Thank you — your enquiry has been received. We'll be in touch shortly."
+  },
+  "footer": {
+    "wordmark": "BEDROC",
+    "copyright": "© 2026 BEDROC Ground Engineering Pvt. Ltd.",
+    "adminLabel": "Admin Login",
+    "links": [
+      {
+        "label": "Home",
+        "href": "#home"
+      },
+      {
+        "label": "About Us",
+        "href": "#about"
+      },
+      {
+        "label": "Capabilities",
+        "href": "#capabilities"
+      },
+      {
+        "label": "Back to top ↑",
+        "href": "#home"
+      }
+    ]
+  }
+}

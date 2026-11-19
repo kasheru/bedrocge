@@ -1,0 +1,51 @@
+/* Animated diagnostic cross-section */
+.dm{display:block;width:100%;height:auto;overflow:visible}
+.dm .dr{stroke-dasharray:1;stroke-dashoffset:1}
+.dm .dr[data-flow]{stroke-dasharray:7 8;stroke-dashoffset:0;opacity:0}
+.dm .seep{stroke-dasharray:2 4;opacity:0}
+.dm .arrow{stroke-dasharray:1;stroke-dashoffset:1}
+.dm .fillin,.dm .co,.dm [class~=weak]{opacity:0}
+.dm .rock,.dm .drop,.dm .rubble,.dm .sink,.dm .ring{opacity:0}
+
+.dm.play .dr:not([data-flow]){animation:dmDraw 1.5s ease forwards;animation-delay:var(--d,0s)}
+.dm.play .dr[data-flow]{animation:dmFade .6s ease forwards,dmFlow 1.1s linear infinite;animation-delay:var(--d,0s),var(--d,0s)}
+.dm.play .fillin{animation:dmFade 1.6s ease .4s forwards}
+.dm.play .co{animation:dmPop .55s cubic-bezier(.2,.9,.3,1.3) forwards;animation-delay:var(--d)}
+.dm.play .arrow{animation:dmDraw .5s ease forwards;animation-delay:var(--d)}
+.dm.play .ring{animation:dmRing 2.2s ease-out infinite;animation-delay:calc(var(--d) + 3s);transform-box:fill-box;transform-origin:center}
+
+/* ambient motion, starts after the drawing-in */
+.dm.play .rock{animation:dmSlide 4.2s ease-in infinite;animation-delay:calc(var(--d) + 2.6s)}
+.dm.play .drop{animation:dmDrop 2.1s ease-in infinite;animation-delay:calc(var(--d) + 3s)}
+.dm.play .seep{animation:dmFade .6s ease 3s forwards,dmFlow 1.6s linear infinite 3s}
+.dm.play .weak{animation:dmTwinkle 2.6s ease-in-out infinite;animation-delay:calc(var(--d) + 2s)}
+.dm.play .settle{animation:dmSettle 3.2s ease-in-out 3s infinite alternate}
+.dm.play .sink{animation:dmSink 1.8s ease-in-out 3s infinite}
+.dm.play .lvl{animation:dmFade .6s ease 3s both}
+.dm.play .void{animation:dmVoid 2.8s ease-in-out 3s infinite alternate}
+.dm.play .rubble{animation:dmRubble 1.8s ease-in infinite;animation-delay:calc(var(--d) + 3s)}
+
+.dm .rock{offset-rotate:0deg;transform-box:fill-box}
+@keyframes dmDraw{to{stroke-dashoffset:0}}
+@keyframes dmFade{to{opacity:1}}
+@keyframes dmFlow{to{stroke-dashoffset:-30}}
+@keyframes dmPop{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:none}}
+@keyframes dmRing{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(4)}}
+@keyframes dmSlide{0%{offset-distance:0%;opacity:0}12%{opacity:1}85%{opacity:1}100%{offset-distance:100%;opacity:0}}
+@keyframes dmDrop{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(62px);opacity:0}}
+@keyframes dmTwinkle{0%,100%{opacity:.15}50%{opacity:.85}}
+@keyframes dmSettle{from{transform:translateY(0)}to{transform:translateY(7px)}}
+@keyframes dmSink{0%,100%{opacity:.2;transform:translateY(-4px)}50%{opacity:1;transform:translateY(5px)}}
+@keyframes dmVoid{from{stroke:#0A2347}to{stroke:#E8761C}}
+@keyframes dmRubble{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(34px)}}
+
+.dm-wrap{position:relative}
+.dm-replay{margin-top:18px;font:600 12px Manrope,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0A2347;background:transparent;border:1px solid #C9D2DD;border-radius:2px;min-height:40px;padding:0 20px;cursor:pointer}
+.dm-replay:hover{border-color:#E8761C;color:#B85009}
+
+@media (prefers-reduced-motion:reduce){
+  .dm .dr,.dm .arrow{stroke-dashoffset:0!important}
+  .dm .dr[data-flow],.dm .seep{opacity:1}
+  .dm .fillin,.dm .co,.dm .weak{opacity:1}
+  .dm .ring{display:none}
+}

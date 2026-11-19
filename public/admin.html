@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>BEDROC Admin</title>
+<style>
+:root{--navy:#14274a;--accent:#f26a21;--line:#d9dde3;--soft:#f3f4f6;--gray:#6b7280}
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--soft);color:#111827;line-height:1.45}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;padding:7px 14px;border-radius:4px}
+button:hover{border-color:var(--navy)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+button.danger{color:#b91c1c}
+button.sm{padding:3px 9px;font-size:.85rem}
+input[type=text],input[type=password],textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:#fff}
+textarea{min-height:70px;resize:vertical}
+select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:#fff}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+#login{max-width:360px;margin:12vh auto;background:#fff;padding:32px;border-top:4px solid var(--accent);display:grid;gap:14px}
+#login h1{color:var(--navy);font-size:1.4rem}
+.err{color:#b91c1c;font-size:.9rem;min-height:1.2em}
+#app{display:none}
+.top{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;display:flex;align-items:center;gap:12px;padding:12px 20px;flex-wrap:wrap}
+.top strong{letter-spacing:2px;margin-right:auto}
+.top a{color:#fff;font-size:.9rem}
+.status{font-size:.85rem;opacity:.8}
+.layout{display:flex;gap:24px;max-width:1100px;margin:24px auto;padding:0 20px;align-items:flex-start}
+.side{width:200px;flex:none;position:sticky;top:76px;display:grid;gap:4px}
+.side button{text-align:left;border:0;background:transparent;padding:9px 12px;border-left:3px solid transparent;border-radius:0}
+.side button.on{background:#fff;border-left-color:var(--accent);font-weight:700;color:var(--navy)}
+.panel{flex:1;min-width:0;background:#fff;padding:24px;border-top:4px solid var(--navy)}
+.panel h2{color:var(--navy);margin-bottom:18px;text-transform:capitalize}
+.field{margin-bottom:14px}
+.field>label{display:block;font-size:.8rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.group{border:1px solid var(--line);padding:14px;margin-bottom:14px;background:#fafafa}
+.group>.gt{font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:capitalize}
+.item{border:1px solid var(--line);background:#fff;margin-bottom:10px}
+.item>.ih{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--soft);cursor:pointer}
+.item>.ih .t{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item>.ib{padding:14px;display:none}
+.item.open>.ib{display:block}
+.srow{display:flex;gap:6px;margin-bottom:6px}
+.srow input,.srow textarea{flex:1}
+.srow textarea{min-height:42px}
+.toggle{display:flex;align-items:center;gap:8px}
+.imgbox{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.imgbox img{height:70px;border:1px solid var(--line)}
+.row-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:12px 18px;display:none;border-left:4px solid var(--accent)}
+@media(max-width:760px){.layout{flex-direction:column}.side{width:100%;position:static;grid-auto-flow:column;overflow-x:auto}}
+</style>
+</head>
+<body>
+<form id="login">
+  <h1>BEDROC Admin</h1>
+  <input type="password" id="pw" placeholder="Password" autocomplete="current-password" autofocus>
+  <button class="primary" type="submit">Sign in</button>
+  <div class="err" id="lerr"></div>
+</form>
+
+<div id="app">
+  <div class="top">
+    <strong>BEDROC ADMIN</strong>
+    <span class="status" id="status"></span>
+    <a href="/" target="_blank">View site ↗</a>
+    <button class="primary" id="save">Save changes</button>
+    <button id="out">Sign out</button>
+  </div>
+  <div class="layout"><div class="side" id="side"></div><div class="panel" id="panel"></div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const el=(tag,props={},...kids)=>{const e=document.createElement(tag);
+  for(const[k,v]of Object.entries(props)){if(k==='class')e.className=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v===true?'':v)}
+  for(const c of kids.flat())if(c!=null)e.append(c.nodeType?c:document.createTextNode(c));return e};
+const pretty=(k)=>k.replace(/([A-Z])/g,' $1').replace(/^./,(c)=>c.toUpperCase());
+let token=sessionStorage.getItem('bt')||'',data=null,tab=null,dirty=false;
+
+// Templates for adding to arrays that are empty
+const TEMPLATES={'projects.items':{title:'New project',sector:'',location:'',intervention:'',description:'',image:''},
+  'projects.clients':{name:'Client name',logo:''},'header.nav':{label:'New link',href:'#',enabled:true},
+  'stats.items':{value:'0',label:''},'why.items':{title:'',text:''},'method.points':{title:'',text:''},
+  'reach.items':{name:'',terrain:'urban'},'capabilities.categories':{name:'New category',items:[]},
+  'diagnostics.vulnerabilities':{name:'New vulnerability',fixes:[]},'footer.links':{label:'',href:'#'}};
+TEMPLATES['disciplines.items']={title:'New discipline',icon:'layers'};
+const SELECTS={icon:['layers','compact','grout','slope','tunnel','bridge','shield','mountain'],terrain:['urban','remote','hilly','mining','risk'],defaultTheme:['light','dark']};
+const HINTS={headline:'Wrap words in *asterisks* to highlight them.',title:'Wrap a word in *asterisks* to make it bold.',statement:'Wrap words in *asterisks* to highlight them.',
+  fixes:'Must match an item name in Capabilities exactly.',enabled:'Off = shown greyed out as "coming soon".'};
+
+const toast=(m)=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2600)};
+const api=async(url,opt={})=>{const r=await fetch(url,{...opt,headers:{...(opt.headers||{}),Authorization:'Bearer '+token}});
+  const j=await r.json().catch(()=>({}));if(r.status===401&&url!=='/api/login'){logout();throw new Error('Session expired')}
+  if(!r.ok)throw new Error(j.error||'Request failed');return j};
+const setDirty=(d)=>{dirty=d;$('#status').textContent=d?'Unsaved changes':'All changes saved'};
+const logout=()=>{token='';sessionStorage.removeItem('bt');$('#app').style.display='none';$('#login').style.display='grid'};
+
+$('#login').addEventListener('submit',async(e)=>{e.preventDefault();$('#lerr').textContent='';
+  try{const j=await api('/api/login',{method:'POST',body:JSON.stringify({password:$('#pw').value})});
+    token=j.token;sessionStorage.setItem('bt',token);start()}catch(err){$('#lerr').textContent=err.message}});
+$('#out').onclick=logout;
+$('#save').onclick=async()=>{try{await api('/api/content',{method:'PUT',body:JSON.stringify(data,(k,v)=>k==='__open'?undefined:v,2)});setDirty(false);toast('Saved — site updated')}catch(e){toast(e.message)}};
+window.addEventListener('beforeunload',(e)=>{if(dirty){e.preventDefault();e.returnValue=''}});
+
+async function start(){
+  const r=await fetch('/api/content');data=await r.json();
+  try{await api('/api/session')}catch{return}
+  $('#login').style.display='none';$('#app').style.display='block';
+  tab=tab||Object.keys(data)[0];setDirty(false);render();
+}
+
+function render(){
+  const keys=[...Object.keys(data),'__enq','__account'];
+  const names={__account:'Account',__enq:'Enquiries'};
+  $('#side').replaceChildren(...keys.map(k=>el('button',{class:k===tab?'on':'',onclick:()=>{tab=k;render()}},names[k]||pretty(k))));
+  const p=$('#panel');
+  if(tab==='__account'){p.replaceChildren(accountPanel());return}
+  if(tab==='__enq'){enquiriesPanel(p);return}
+  p.replaceChildren(el('h2',{},pretty(tab)),editObject(data[tab],tab));
+}
+
+// ---- generic editors ----
+const change=()=>setDirty(true);
+
+function editValue(obj,key,path){
+  const v=obj[key],label=pretty(String(key));
+  if(typeof v==='boolean')return el('div',{class:'field toggle'},el('input',{type:'checkbox',checked:v,onchange:(e)=>{obj[key]=e.target.checked;change()}}),
+    el('label',{},key==='visible'?'Show this section on the site':label+(HINTS[key]?' — '+HINTS[key]:'')));
+  if(typeof v==='string'&&SELECTS[key]){
+    const sel=el('select',{onchange:(e)=>{obj[key]=e.target.value;change()}},SELECTS[key].map(o=>el('option',{value:o,selected:o===v},o)));
+    return el('div',{class:'field'},el('label',{},label),sel);
+  }
+  if(typeof v==='string'){
+    if(key==='image')return imageField(obj,key,label);
+    if(/Color$/.test(key)){
+      const txt=el('input',{type:'text',value:v,oninput:(e)=>{obj[key]=e.target.value;change()}});
+      const pick=el('input',{type:'color',value:v,style:'width:56px;height:38px;flex:none',oninput:(e)=>{obj[key]=txt.value=e.target.value;change()}});
+      return el('div',{class:'field'},el('label',{},label),el('div',{class:'srow'},pick,txt));
+    }
+    return el('div',{class:'field'},el('label',{},label),stringInput(obj,key,v),HINTS[key]?el('small',{style:'color:#6b7280'},HINTS[key]):null);
+  }
+  if(Array.isArray(v))return el('div',{class:'field'},el('label',{},label),HINTS[key]?el('small',{style:'display:block;color:#6b7280;margin-bottom:4px'},HINTS[key]):null,editArray(v,path));
+  if(v&&typeof v==='object')return el('div',{class:'group'},el('div',{class:'gt'},label),editObject(v,path));
+  return null;
+}
+function stringInput(holder,key,v){
+  const long=v.length>60||v.includes('\n');
+  return el(long?'textarea':'input',{type:long?null:'text',value:long?null:v,oninput:(e)=>{holder[key]=e.target.value;change()}},long?v:null);
+}
+function editObject(o,path){return el('div',{},Object.keys(o).map(k=>editValue(o,k,path+'.'+k)))}
+
+function editArray(arr,path){
+  const box=el('div'),isStr=arr.length&&typeof arr[0]==='string'||(!arr.length&&!TEMPLATES[path]);
+  const redraw=()=>{box.replaceChildren(...build())};
+  const move=(i,d)=>{const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];change();redraw()};
+  const build=()=>{
+    const rows=arr.map((it,i)=>{
+      if(typeof it==='string')return el('div',{class:'srow'},stringInput(arr,i,it),
+        el('button',{class:'sm',onclick:()=>move(i,-1),title:'Move up'},'↑'),el('button',{class:'sm',onclick:()=>move(i,1),title:'Move down'},'↓'),
+        el('button',{class:'sm danger',onclick:()=>{arr.splice(i,1);change();redraw()}},'✕'));
+      const title=it.title||it.label||it.name||Object.values(it).find(x=>typeof x==='string'&&x)||'Item '+(i+1);
+      const item=el('div',{class:'item'+(it.__open?' open':'')},
+        el('div',{class:'ih',onclick:()=>{item.classList.toggle('open');it.__open=item.classList.contains('open')}},
+          el('span',{class:'t'},title),
+          el('button',{class:'sm',onclick:(e)=>{e.stopPropagation();move(i,-1)}},'↑'),el('button',{class:'sm',onclick:(e)=>{e.stopPropagation();move(i,1)}},'↓'),
+          el('button',{class:'sm danger',onclick:(e)=>{e.stopPropagation();if(confirm('Delete this item?')){arr.splice(i,1);change();redraw()}}},'Delete')),
+        el('div',{class:'ib'},editObject(it,path+'.'+i)));
+      return item;
+    });
+    const add=el('div',{class:'row-actions'},el('button',{onclick:()=>{
+      const tpl=arr.length&&typeof arr[0]==='object'?Object.fromEntries(Object.keys(arr[0]).filter(k=>k!=='__open').map(k=>[k,Array.isArray(arr[0][k])?[]:typeof arr[0][k]==='boolean'?true:''])):
+        TEMPLATES[path]?{...TEMPLATES[path]}:'';
+      if(typeof tpl==='object')tpl.__open=true;arr.push(tpl);change();redraw()}},'+ Add'+(path==='projects.items'?' project':' item')));
+    return [...rows,add];
+  };
+  redraw();return box;
+}
+
+function imageField(obj,key,label){
+  const box=el('div',{class:'imgbox'}),draw=()=>{box.replaceChildren(
+    obj[key]?el('img',{src:obj[key]}):el('span',{style:'color:#6b7280'},'No image'),
+    el('input',{type:'file',accept:'image/png,image/jpeg,image/webp,image/gif',onchange:async(e)=>{const f=e.target.files[0];if(!f)return;
+      try{const r=await api('/api/upload',{method:'POST',headers:{'Content-Type':f.type},body:f});obj[key]=r.url;change();draw();toast('Image uploaded')}catch(er){toast(er.message)}}}),
+    obj[key]?el('button',{class:'sm danger',onclick:()=>{obj[key]='';change();draw()}},'Remove'):null)};
+  draw();return el('div',{class:'field'},el('label',{},label),box);
+}
+
+async function enquiriesPanel(p){
+  p.replaceChildren(el('h2',{},'Enquiries'),el('p',{},'Loading…'));
+  let list;try{list=await api('/api/enquiries')}catch(e){p.replaceChildren(el('h2',{},'Enquiries'),el('p',{},e.message));return}
+  p.replaceChildren(el('h2',{},'Enquiries ('+list.length+')'),...(list.length?list.map(q=>el('div',{class:'group'},
+    el('div',{class:'gt'},q.name+(q.organisation?' — '+q.organisation:'')),
+    el('div',{style:'font-size:.85rem;color:#6b7280;margin-bottom:8px'},new Date(q.at).toLocaleString()+' · ',el('a',{href:'mailto:'+q.email},q.email)),
+    el('div',{style:'white-space:pre-wrap'},q.message),
+    el('div',{class:'row-actions'},el('button',{class:'sm danger',onclick:async()=>{if(!confirm('Delete this enquiry?'))return;
+      try{await api('/api/enquiries/'+q.id,{method:'DELETE'});enquiriesPanel(p)}catch(e){toast(e.message)}}},'Delete')))):[el('p',{style:'color:#6b7280'},'No enquiries yet.')]));
+}
+
+function accountPanel(){
+  const cur=el('input',{type:'password',autocomplete:'current-password'}),nw=el('input',{type:'password',autocomplete:'new-password'});
+  return el('div',{},el('h2',{},'Account'),
+    el('div',{class:'field'},el('label',{},'Current password'),cur),
+    el('div',{class:'field'},el('label',{},'New password (8+ characters)'),nw),
+    el('div',{class:'row-actions'},
+      el('button',{class:'primary',onclick:async()=>{try{await api('/api/password',{method:'POST',body:JSON.stringify({current:cur.value,next:nw.value})});cur.value=nw.value='';toast('Password changed')}catch(e){toast(e.message)}}},'Change password'),
+      el('button',{class:'danger',onclick:async()=>{if(!confirm('Reset ALL site content to the original defaults? This cannot be undone.'))return;
+        try{await api('/api/content/reset',{method:'POST'});data=await (await fetch('/api/content')).json();tab=Object.keys(data)[0];setDirty(false);render();toast('Content reset')}catch(e){toast(e.message)}}},'Reset content to defaults')));
+}
+
+if(token)start();
+</script>
+</body>
+</html>
