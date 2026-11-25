@@ -179,7 +179,7 @@ function render(){
     <div><h4>Explore</h4><ul>${(f.links||[]).map(l=>`<li><a href="${href(l.href)}">${esc(l.label)}</a></li>`).join('')}</ul></div>
     <div><h4>Company</h4><ul>${(h.nav||[]).filter(n=>n.enabled!==false).map(n=>`<li><a href="${href(n.href)}">${esc(n.label)}</a></li>`).join('')}</ul></div>
     <div><h4>Contact</h4><ul>${co?`<li><a href="mailto:${esc(co.email)}">${esc(co.email)}</a></li><li><a href="tel:${esc(String(co.phone).replace(/[^\d+]/g,''))}">${esc(co.phone)}</a></li><li>${esc(co.website)}</li>`:''}</ul></div>
-  </div><div class="legal"><span>${esc(f.copyright)}</span>${f.adminLabel?`<a href="/admin">${esc(f.adminLabel)}</a>`:''}</div></div></footer>`;
+  </div><div class="legal"><span>${esc(f.copyright)}</span>${f.adminLabel&&!STATIC?`<a href="/admin">${esc(f.adminLabel)}</a>`:''}</div></div></footer>`;
   document.getElementById('app').innerHTML=o;
   renderDg();bind();motion();
 }
@@ -205,6 +205,14 @@ function bind(){
     const errs={'e-name':!fd.name.trim()&&'Write the name we should reply to.','e-mail':!/^\S+@\S+\.\S+$/.test(fd.email)&&'Write an email address with an @.','e-msg':!fd.message.trim()&&'Tell us where the site is and what the ground is doing.'};
     let bad=null;for(const[k,v]of Object.entries(errs)){document.getElementById(k).textContent=v||'';if(v&&!bad)bad=k}
     if(bad){msg.textContent='';({'e-name':form.name,'e-mail':form.email,'e-msg':form.message})[bad].focus();return}
+    if(STATIC){ // no lead collection on the static host yet: hand the enquiry to the visitor's email app
+      const body=`Name: ${fd.name}
+Organisation: ${fd.organisation||'-'}
+Email: ${fd.email}
+
+${fd.message}`;
+      location.href=`mailto:${encodeURIComponent(C.contact.email)}?subject=${encodeURIComponent('Project enquiry from '+fd.name)}&body=${encodeURIComponent(body)}`;
+      msg.textContent='Your email app should open with the enquiry ready to send.';return}
     const b=form.querySelector('button');b.disabled=true;msg.textContent='Sending…';
     try{const r=await fetch('/api/enquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(fd)});if(!r.ok)throw new Error((await r.json()).error||'Could not send');form.reset();msg.textContent=C.contact.successMessage}
     catch(er){msg.textContent=er.message+' Your details are still in the form.'}finally{b.disabled=false}};
@@ -255,7 +263,9 @@ function motion(){
   gsap.to('[data-par]',{yPercent:10,ease:'none',scrollTrigger:{trigger:'.band',start:'top bottom',end:'bottom top',scrub:true}});
 }
 
-fetch('/api/content').then(r=>r.json()).then(c=>{C=c;render()});
+// on a static host (Vercel) the build sets BEDROC_STATIC and ships the content as content.json
+const STATIC=!!window.BEDROC_STATIC;
+fetch(STATIC?'content.json':'/api/content').then(r=>r.json()).then(c=>{C=c;render()});
 </script>
 </body>
 </html>

@@ -4,3 +4,5 @@ uploads/
 node_modules/
 public-v2/.taste-skill/
 public-v2/shots/
+dist/
+.vercel/
