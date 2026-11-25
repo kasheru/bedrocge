@@ -15,6 +15,8 @@ try {
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const PUBLIC = path.join(ROOT, 'public');
+const PUBLIC_V2 = path.join(ROOT, 'public-v2');
+const PUBLIC_V3 = path.join(ROOT, 'public-v3');
 const DATA = path.join(ROOT, 'data');
 const UPLOADS = path.join(ROOT, 'uploads');
 const CONTENT_FILE = path.join(DATA, 'content.json');
@@ -86,6 +88,20 @@ const serveFile = (res, file) => {
     res.end(buf);
   });
 };
+// text fields of a multipart/form-data or urlencoded body (no files)
+function parseForm(buf, type = '') {
+  const out = {};
+  const m = type.match(/boundary=(?:"([^"]+)"|([^;]+))/);
+  if (!m) return Object.fromEntries(new URLSearchParams(buf.toString()));
+  for (const part of buf.toString('utf8').split('--' + (m[1] || m[2]))) {
+    const i = part.indexOf('\r\n\r\n');
+    const name = part.slice(0, i).match(/name="([^"]*)"/);
+    if (i < 0 || !name || /filename=/.test(part.slice(0, i))) continue;
+    out[name[1]] = part.slice(i + 4).replace(/\r\n$/, '');
+  }
+  return out;
+}
+
 const safeJoin = (base, rel) => {
   const p = path.normalize(path.join(base, decodeURIComponent(rel)));
   return p.startsWith(base + path.sep) ? p : null;
@@ -110,13 +126,15 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { ok: true });
     }
     // ---- enquiries (public submit, admin read/delete) ----
-    if (p === '/api/enquiry' && req.method === 'POST') {
+    // /api/enquiry takes JSON (site 1); /api/enquiry-form takes the multipart FormData the v2 page sends
+    if ((p === '/api/enquiry' || p === '/api/enquiry-form') && req.method === 'POST') {
       // behind the local Caddy proxy every request comes from 127.0.0.1, so trust X-Forwarded-For only from there
       const peer = req.socket.remoteAddress;
       const ip = /^(::1|::ffff:127\.0\.0\.1|127\.0\.0\.1)$/.test(peer) ? String(req.headers['x-forwarded-for'] || peer).split(',')[0].trim() : peer;
       const now = Date.now(), hits = (enqHits.get(ip) || []).filter((t) => now - t < 3600e3);
       if (hits.length >= 5) return send(res, 429, { error: 'Too many enquiries. Please try again later.' });
-      const b = JSON.parse((await readBody(req, 50e3)).toString() || '{}');
+      const raw = await readBody(req, 50e3);
+      const b = p === '/api/enquiry' ? JSON.parse(raw.toString() || '{}') : parseForm(raw, req.headers['content-type']);
       if (b.website) return send(res, 200, { ok: true }); // honeypot
       const clip = (v, n) => String(v || '').trim().slice(0, n);
       const e = { id: crypto.randomBytes(6).toString('hex'), at: new Date().toISOString(),
@@ -172,6 +190,16 @@ const server = http.createServer(async (req, res) => {
     if (p.startsWith('/uploads/')) {
       const f = safeJoin(UPLOADS, p.slice(9));
       return f ? serveFile(res, f) : send(res, 400, 'Bad path', 'text/plain');
+    }
+
+    // other designs, served from public-v2 / public-v3 at /v2/ and /v3/ (relative asset paths need the trailing slash)
+    const alt = p.match(/^\/(v[23])(\/.*)?$/);
+    if (alt) {
+      if (!alt[2]) { res.writeHead(301, { Location: `/${alt[1]}/` }); return res.end(); }
+      const rel2 = alt[2] === '/' ? 'index.html' : alt[2].slice(1);
+      if (/(^|\/)\./.test(rel2) || rel2.startsWith('shots/')) return send(res, 404, 'Not found', 'text/plain'); // build files
+      const f2 = safeJoin(alt[1] === 'v2' ? PUBLIC_V2 : PUBLIC_V3, rel2);
+      return f2 ? serveFile(res, f2) : send(res, 400, 'Bad path', 'text/plain');
     }
 
     // static

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BEDROC Ground Engineering</title>
+<meta name="description" content="">
+<meta name="theme-color" content="#0a1a30">
+<link rel="icon" href="img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="/diagram.css">
+<link rel="stylesheet" href="v3.css">
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="/diagram.js"></script>
+<script>
+const esc=(s)=>String(s??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const href=(h)=>esc(/^\s*(javascript|data|vbscript):/i.test(h||'')?'#':(h||'#'));
+const rich=(t)=>esc(t).replace(/\*([^*]+)\*/g,'<em>$1</em>');
+const num=(i)=>String(i+1).padStart(2,'0');
+let labN=0;const lab=(l)=>esc(`${num(labN++)} — ${String(l||'').replace(/^\s*\d+\s*[—–-]\s*/,'')}`);
+const on=(o)=>o&&o.visible!==false;
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ICON={layers:'stack-2',compact:'arrow-bar-to-down',grout:'droplet',slope:'mountain',tunnel:'building-tunnel',bridge:'building-bridge-2',shield:'shield-check',mountain:'mountain'};
+const CAPICON=['stack-2','droplet-half-2','mountain','building-tunnel'];
+const WHYICON=['users-group','route','map-pin','adjustments-horizontal'];
+const SECTORICON=['road','train','building-tunnel','pick','building-factory-2','buildings'];
+
+// hero cross-section: strata, retaining face, anchors with grout bulbs
+function heroArt(){
+  const bands=[
+    ['M0 120 C120 112 200 128 260 120 L640 120 L640 175 C520 182 380 168 260 176 C160 182 70 170 0 178 Z','#24426e','Topsoil'],
+    ['M0 178 C70 170 160 182 260 176 C380 168 520 182 640 175 L640 250 C500 262 360 238 250 252 C150 262 80 244 0 252 Z','#1b3760',''],
+    ['M0 252 C80 244 150 262 250 252 C360 238 500 262 640 250 L640 350 C520 340 400 366 280 352 C170 340 90 362 0 350 Z','#142d52','Weathered rock'],
+    ['M0 350 C90 362 170 340 280 352 C400 366 520 340 640 350 L640 560 L0 560 Z','#0d2140','Bedrock']
+  ];
+  const anchors=[[250,165,70,300],[250,215,78,372],[250,262,96,440]];
+  return `<svg viewBox="0 0 640 560" role="img" aria-label="Cross-section of a cut slope held by a retaining face and three grouted anchors reaching into bedrock">
+  <defs>
+    <pattern id="ht" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="10" stroke="rgba(232,238,246,.07)" stroke-width="1"/></pattern>
+    <pattern id="dt" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1" fill="rgba(232,238,246,.10)"/><circle cx="9" cy="9" r="1" fill="rgba(232,238,246,.07)"/></pattern>
+    <clipPath id="cut"><path d="M0 0 H250 V300 H640 V560 H0 Z"/></clipPath>
+  </defs>
+  <g clip-path="url(#cut)">
+    ${bands.map((b,i)=>`<g class="band"><path d="${b[0]}" fill="${b[1]}"/><path d="${b[0]}" fill="url(#${i%2?'dt':'ht'})"/></g>`).join('')}
+  </g>
+  <path class="surf" d="M0 120 C120 112 200 128 250 120 V300 H640" fill="none" stroke="#e8eef6" stroke-width="2" pathLength="1"/>
+  <rect class="wall" x="244" y="120" width="12" height="180" fill="#e8eef6"/>
+  <line class="road" x1="262" y1="300" x2="640" y2="300" stroke="#e8eef6" stroke-width="3" stroke-dasharray="18 14" opacity=".5"/>
+  ${anchors.map(([x1,y1,x2,y2],i)=>{const a=Math.atan2(y2-y1,x2-x1)*180/Math.PI;return `<line class="anc" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#f26a21" stroke-width="3" stroke-linecap="round" pathLength="1"/>
+    <ellipse class="bulb" cx="${x2+(x1-x2)*.12}" cy="${y2+(y1-y2)*.12}" rx="30" ry="9" transform="rotate(${a} ${x2+(x1-x2)*.12} ${y2+(y1-y2)*.12})" fill="#f26a21" opacity=".9"/>
+    <rect class="plate" x="${x1-2}" y="${y1-9}" width="10" height="18" fill="#f26a21"/>`}).join('')}
+  <g class="lbl" font-family="Geist Mono" font-size="11" letter-spacing="1.2" fill="#9aa8ba">
+    <path d="M262 150 H330" stroke="#9aa8ba" stroke-width=".8" fill="none"/><text x="336" y="154">RETAINING FACE</text>
+    <path d="M110 330 L150 396 H200" stroke="#9aa8ba" stroke-width=".8" fill="none"/><text x="206" y="400">GROUT BULB</text>
+    <path d="M170 238 L186 222 H330" stroke="#9aa8ba" stroke-width=".8" fill="none"/><text x="336" y="226">ANCHOR · 3 NO.</text>
+    <text x="290" y="530">BEDROCK</text><text x="290" y="338" opacity=".8">WEATHERED ROCK</text><text x="20" y="166" opacity=".8">TOPSOIL</text>
+  </g>
+  <g class="dim" stroke="#9aa8ba" stroke-width=".8" fill="none"><path d="M600 120 V300 M592 120 H608 M592 300 H608"/></g>
+  <text class="dim" x="586" y="214" font-family="Geist Mono" font-size="11" fill="#9aa8ba" text-anchor="end">H</text>
+</svg>`;
+}
+
+let C, vuln=0;
+function render(){
+  labN=0;
+  const s=C.settings||{},h=C.header||{},he=C.hero||{};
+  document.title=s.siteTitle||'BEDROC';
+  document.querySelector('meta[name=description]').content=s.metaDescription||'';
+  const nav=(h.nav||[]).filter(n=>n.enabled!==false).map(n=>`<a href="${href(n.href)}">${esc(n.label)}</a>`).join('');
+  const words=(t)=>rich(t).split(/(<em>.*?<\/em>)/).map(part=>part.startsWith('<em>')?part.replace(/^<em>|<\/em>$/g,'').split(' ').filter(Boolean).map(w=>`<span class="w"><span><em>${w}</em></span></span>`).join(' '):part.split(' ').filter(Boolean).map(w=>`<span class="w"><span>${w}</span></span>`).join(' ')).join(' ');
+  let o=`<div class="progress" id="progress" aria-hidden="true"></div><header class="nav" id="nav"><div class="wrap">
+    <a class="brand" href="#home" aria-label="${esc(h.wordmark)} home"><img src="img/logo-shield.png" alt="" width="30" height="42"><span>${esc(h.wordmark)}<small>${esc(h.subtitle)}</small></span></a>
+    <nav class="nav-links" aria-label="Main">${nav}</nav>
+    <a class="btn btn-primary" href="${href(h.ctaHref)}">${esc(h.ctaLabel)}<i class="ti ti-arrow-right"></i></a>
+    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mnav" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+  </div></header>
+  <nav class="mnav" id="mnav" aria-label="Mobile">${(h.nav||[]).filter(n=>n.enabled!==false).map(n=>`<a href="${href(n.href)}">${esc(n.label)}</a>`).join('')}<a class="btn btn-primary" href="${href(h.ctaHref)}">${esc(h.ctaLabel)}</a></nav>
+  <main>`;
+
+  if(on(he))o+=`<section class="hero dark" id="home"><div class="grid-bg"></div>
+    <div class="wrap">
+      <div><p class="eyebrow" data-hero>${esc(he.eyebrow)}</p>
+        <h1 id="h1">${words(he.headline)}</h1>
+        <p class="lede" data-hero>${esc(he.intro)}</p>
+        <div class="ctas" data-hero>${he.ctaLabel?`<a class="btn btn-primary" href="${href(he.ctaHref)}">${esc(he.ctaLabel)}<i class="ti ti-arrow-right"></i></a>`:''}${he.linkLabel?`<a class="btn btn-ghost" href="${href(he.linkHref)}">${esc(he.linkLabel)}</a>`:''}</div></div>
+      <div class="hero-art">${heroArt()}</div>
+    </div>
+    <div class="strip"><div class="wrap"><span>${esc(he.stripText)}</span><span class="scroll"><i></i>${esc(he.scrollLabel)}</span></div></div>
+  </section>`;
+
+  const sec=C.sectors;
+  if(on(sec)&&(sec.items||[]).length){const set=`<span>${sec.items.map(esc).join('</span><span>')}</span>`;o+=`<div class="marq" aria-hidden="true"><div class="marq-in">${set}${set}</div></div>`}
+
+  const d=C.disciplines;
+  if(on(d))o+=`<section class="sec" id="what"><div class="wrap">
+    <div class="head"><div><p class="eyebrow">${lab(d.label)}</p><h2>${rich(d.title)}</h2></div>${d.linkLabel?`<p class="lede"><a class="btn btn-line" href="${href(d.linkHref)}">${esc(d.linkLabel)}<i class="ti ti-arrow-right"></i></a></p>`:''}</div>
+    <div class="disc">${(d.items||[]).map((x,i)=>{const t=typeof x==='string'?{title:x}:x;return `<article data-rise><div class="top"><span class="n">${num(i)}</span><i class="ti ti-${ICON[t.icon]||'stack-2'}" aria-hidden="true"></i></div><h3>${esc(t.title)}</h3></article>`}).join('')}</div>
+  </div></section>`;
+
+  const a=C.about;
+  if(on(a))o+=`<section class="sec statement" id="about" style="background:var(--paper-2)"><div class="wrap about-grid">
+    <div><p class="eyebrow">${lab(a.label)}</p><h2 style="font-size:clamp(22px,1.8vw,28px)">${rich(a.title)}</h2></div>
+    <p id="stmt">${rich(a.statement).split(/(<em>.*?<\/em>)/).map(part=>part.startsWith('<em>')?part.replace(/<\/?em>/g,'').split(' ').map(w=>`<span class="sw hl">${w}</span>`).join(' '):part.split(' ').filter(Boolean).map(w=>`<span class="sw">${w}</span>`).join(' ')).join(' ')}</p>
+  </div></section>`;
+
+  const cp=C.capabilities;
+  if(on(cp)&&(cp.categories||[]).length){const total=cp.categories.reduce((n,c)=>n+(c.items||[]).length,0);
+    o+=`<section class="sec dark caps" id="capabilities"><div class="wrap"><div class="head"><div><p class="eyebrow">${lab(cp.label)}</p><h2>${rich(cp.title)}</h2></div></div></div>
+    <div class="caps-track" id="capsTrack">
+      <div class="cap-intro"><div class="count">${total}</div><p class="lede" style="margin:0">${esc(cp.donutLabel)} in ${cp.categories.length} groups, each designed around the site’s geology, access and safety.</p></div>
+      ${cp.categories.map((c,i)=>`<article class="cap"><span class="big" aria-hidden="true">${String.fromCharCode(65+i)}</span><i class="ti ti-${CAPICON[i]||'stack-2'}" aria-hidden="true"></i><h3>${esc(c.name)}</h3>
+        <ol>${(c.items||[]).map((it,j)=>`<li><b>${String.fromCharCode(65+i)}${j+1}</b>${esc(it)}</li>`).join('')}</ol></article>`).join('')}
+    </div></section>`}
+
+  if(on(sec))o+=`<section class="sec sectors" id="sectors"><div class="wrap">
+    <div class="head"><div><p class="eyebrow">${lab(sec.label)}</p><h2>${rich(sec.title)}</h2></div></div>
+    <ul>${(sec.items||[]).map((x,i)=>`<li><span class="n">${num(i)}</span><i class="ti ti-${SECTORICON[i]||'building'}" aria-hidden="true"></i><span class="t">${esc(x)}</span></li>`).join('')}</ul>
+  </div></section>`;
+
+  const w=C.why;
+  if(on(w))o+=`<section class="sec dark" id="why"><div class="wrap">
+    <div class="head"><div><p class="eyebrow">${lab(w.label)}</p><h2>${rich(w.title)}</h2></div></div>
+    <div class="why">${(w.items||[]).map((x,i)=>`<article data-rise><i class="ti ti-${WHYICON[i]||'check'}" aria-hidden="true"></i><h3>${esc(x.title)}</h3><p>${esc(x.text)}</p></article>`).join('')}</div>
+  </div></section>`;
+
+  o+=`<section class="band" aria-label="Pan India capability"><img src="img/rigs.webp" alt="" data-par><div class="wrap">
+    <p class="eyebrow">Pan India</p><h2>Mobilised for urban, remote, hilly and mining sites.</h2>
+    <div class="reach"><span>Urban</span><span>Remote</span><span>Hilly</span><span>Mining</span><span>High-risk zones</span></div></div></section>`;
+
+  const dm=C.diagram;
+  if(on(dm)&&window.dmSvg)o+=`<section class="sec diagram-sec" id="diagram"><div class="wrap">
+    <div class="head"><div><p class="eyebrow" style="color:var(--orange-d)">${lab(dm.label)}</p><h2>${rich(dm.title)}</h2></div><p class="lede">${esc(dm.intro)}</p></div>
+    <div class="dm-frame"><div class="t"><span>${esc(dm.mapTitle)}</span><button class="dm-replay" id="dmReplay"><i class="ti ti-refresh"></i>Replay</button></div>${dmSvg(dm.labels||[])}</div>
+  </div></section>`;
+
+  const dg=C.diagnostics;
+  if(on(dg)&&(dg.vulnerabilities||[]).length)o+=`<section class="sec dark" id="diagnostics"><div class="wrap">
+    <div class="head"><div><p class="eyebrow">${lab(dg.label)}</p><h2>${rich(dg.title)}</h2></div><p class="lede">${esc(dg.intro)}</p></div>
+    <div class="wwci"><div class="vlist" id="vlist"></div><div class="groups" id="groups"></div></div>
+    <p class="foot-note">${esc(dg.footnote)}</p>
+  </div></section>`;
+
+  const m=C.method;
+  if(on(m)){const t=m.formulaTerms||[];o+=`<section class="sec" id="method"><div class="wrap">
+    <p class="eyebrow">${lab(m.label)}</p><h2 style="margin-bottom:clamp(24px,4.5vh,44px)">${rich(m.title)}</h2>
+    <div class="formula" id="formula">${t.map((x,i)=>`${i?'<span class="op" data-f>+</span>':''}<span data-f>${esc(x)}</span>`).join('')}<span class="op" data-f>=</span><span class="res" data-f>${esc(m.formulaResult)}</span></div>
+    <div class="points">${(m.points||[]).map((p,i)=>`<article data-rise><span class="n">${num(i)}</span><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></article>`).join('')}</div>
+  </div></section>`}
+
+  const co=C.contact,f=C.footer||{};
+  if(on(co))o+=`<section class="sec dark contact" id="contact"><div class="wrap contact-grid">
+    <div><p class="eyebrow">${lab(co.label)}</p><h2>${rich(co.statement)}</h2>
+      <div class="cinfo">
+        <a href="mailto:${esc(co.email)}"><span><small>Email</small>${esc(co.email)}</span><i class="ti ti-arrow-up-right"></i></a>
+        <a href="tel:${esc(String(co.phone).replace(/[^\d+]/g,''))}"><span><small>Phone</small>${esc(co.phone)}</span><i class="ti ti-arrow-up-right"></i></a>
+        <a href="https://${esc(String(co.website).replace(/^https?:\/\//,''))}" rel="noopener"><span><small>Website</small>${esc(co.website)}</span><i class="ti ti-arrow-up-right"></i></a>
+      </div></div>
+    <form class="enq" id="enq" novalidate>
+      <div class="fld"><label for="f-name">${esc(co.formNameLabel)}</label><input id="f-name" name="name" autocomplete="name" maxlength="120" required><span class="err" id="e-name"></span></div>
+      <div class="fld"><label for="f-org">${esc(co.formOrgLabel)}</label><input id="f-org" name="organisation" autocomplete="organization" maxlength="160"></div>
+      <div class="fld full"><label for="f-mail">${esc(co.formEmailLabel)}</label><input id="f-mail" name="email" type="email" autocomplete="email" maxlength="160" required><span class="err" id="e-mail"></span></div>
+      <div class="fld full"><label for="f-msg">${esc(co.formMessageLabel)}</label><textarea id="f-msg" name="message" maxlength="4000" required></textarea><span class="err" id="e-msg"></span></div>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="actions"><button class="btn btn-primary" type="submit">${esc(co.submitLabel)}<i class="ti ti-arrow-right"></i></button><p class="status" id="enqMsg" role="status"></p></div>
+    </form>
+  </div></section>`;
+  o+=`</main><footer class="dark"><div class="wrap"><div class="foot">
+    <div><a class="brand brand--lg" href="#home"><img src="img/logo-shield.png" alt="${esc(h.wordmark)} logo" width="40" height="56"><span>${esc(h.wordmark)}<small>${esc(h.subtitle)}</small></span></a><p>${esc(f.companyName||'')}${f.companyName?'. ':''}${esc(he.stripText||'')}</p></div>
+    <div><h4>Explore</h4><ul>${(f.links||[]).map(l=>`<li><a href="${href(l.href)}">${esc(l.label)}</a></li>`).join('')}</ul></div>
+    <div><h4>Company</h4><ul>${(h.nav||[]).filter(n=>n.enabled!==false).map(n=>`<li><a href="${href(n.href)}">${esc(n.label)}</a></li>`).join('')}</ul></div>
+    <div><h4>Contact</h4><ul>${co?`<li><a href="mailto:${esc(co.email)}">${esc(co.email)}</a></li><li><a href="tel:${esc(String(co.phone).replace(/[^\d+]/g,''))}">${esc(co.phone)}</a></li><li>${esc(co.website)}</li>`:''}</ul></div>
+  </div><div class="legal"><span>${esc(f.copyright)}</span>${f.adminLabel?`<a href="/admin">${esc(f.adminLabel)}</a>`:''}</div></div></footer>`;
+  document.getElementById('app').innerHTML=o;
+  renderDg();bind();motion();
+}
+
+function renderDg(){
+  const vl=document.getElementById('vlist');if(!vl)return;
+  const vs=C.diagnostics.vulnerabilities,cats=(C.capabilities&&C.capabilities.categories)||[],act=vs[vuln].fixes||[];
+  vl.innerHTML=vs.map((v,i)=>`<button type="button" aria-pressed="${i===vuln}" data-v="${i}"><span>${num(i)}</span>${esc(v.name)}</button>`).join('');
+  document.getElementById('groups').innerHTML=cats.map((g,gi)=>`<div><h4><b>${String.fromCharCode(65+gi)}</b>${esc(g.name)}</h4>${(g.items||[]).map(it=>`<div class="ix${act.includes(it)?' on':''}"><i></i>${esc(it)}</div>`).join('')}</div>`).join('');
+  vl.querySelectorAll('button').forEach(b=>b.onclick=()=>{vuln=+b.dataset.v;renderDg();vl.querySelector(`[data-v="${vuln}"]`).focus()});
+}
+
+let lenis;
+function bind(){
+  const nav=document.getElementById('nav'),solid=()=>nav.classList.toggle('solid',scrollY>40);solid();addEventListener('scroll',solid,{passive:true});
+  const mb=document.getElementById('menuBtn'),mn=document.getElementById('mnav');
+  mb.onclick=()=>{const o=!mn.classList.contains('open');mn.classList.toggle('open',o);mb.setAttribute('aria-expanded',o);mb.innerHTML=`<i class="ti ti-${o?'x':'menu-2'}"></i>`};
+  mn.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{mn.classList.remove('open');mb.setAttribute('aria-expanded','false');mb.innerHTML='<i class="ti ti-menu-2"></i>'}));
+  document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t||a.getAttribute('href')==='#')return;e.preventDefault();lenis?lenis.scrollTo(t,{offset:0}):t.scrollIntoView({behavior:REDUCED?'auto':'smooth'})}));
+  if(window.dmInit)dmInit();
+  const form=document.getElementById('enq');
+  if(form)form.onsubmit=async(e)=>{e.preventDefault();const fd=Object.fromEntries(new FormData(form)),msg=document.getElementById('enqMsg');
+    const errs={'e-name':!fd.name.trim()&&'Write the name we should reply to.','e-mail':!/^\S+@\S+\.\S+$/.test(fd.email)&&'Write an email address with an @.','e-msg':!fd.message.trim()&&'Tell us where the site is and what the ground is doing.'};
+    let bad=null;for(const[k,v]of Object.entries(errs)){document.getElementById(k).textContent=v||'';if(v&&!bad)bad=k}
+    if(bad){msg.textContent='';({'e-name':form.name,'e-mail':form.email,'e-msg':form.message})[bad].focus();return}
+    const b=form.querySelector('button');b.disabled=true;msg.textContent='Sending…';
+    try{const r=await fetch('/api/enquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(fd)});if(!r.ok)throw new Error((await r.json()).error||'Could not send');form.reset();msg.textContent=C.contact.successMessage}
+    catch(er){msg.textContent=er.message+' Your details are still in the form.'}finally{b.disabled=false}};
+}
+
+function motion(){
+  if(REDUCED||!window.gsap){document.querySelectorAll('.sw').forEach(s=>s.style.opacity=1);return}
+  gsap.registerPlugin(ScrollTrigger);
+  if(window.Lenis){lenis=new Lenis({lerp:.12});lenis.on('scroll',ScrollTrigger.update);gsap.ticker.add(t=>lenis.raf(t*1000));gsap.ticker.lagSmoothing(0)}
+
+  // hero entrance and the cross-section building itself
+  const tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  tl.from('#h1 .w>span',{yPercent:110,duration:1,stagger:.05})
+    .from('[data-hero]',{y:24,opacity:0,duration:.8,stagger:.12},'-=.6')
+    .from('.hero-art .band',{yPercent:30,opacity:0,duration:.9,stagger:.12},.2)
+    .from('.hero-art .surf',{strokeDasharray:1,strokeDashoffset:1,duration:1.2,ease:'power2.inOut'},.6)
+    .from('.hero-art .wall',{scaleY:0,transformOrigin:'50% 100%',duration:.6},1)
+    .from('.hero-art .road',{opacity:0,duration:.5},1.1)
+    .fromTo('.hero-art .anc',{strokeDasharray:1,strokeDashoffset:1},{strokeDashoffset:0,duration:.8,stagger:.18,ease:'power2.in'},1.3)
+    .from('.hero-art .plate',{scale:0,transformOrigin:'50% 50%',duration:.3,stagger:.18},1.3)
+    .from('.hero-art .bulb',{scale:0,transformOrigin:'50% 50%',duration:.6,stagger:.18,ease:'back.out(2)'},2)
+    .from('.hero-art .lbl > *, .hero-art .dim',{opacity:0,duration:.5,stagger:.04},2.4);
+  gsap.to('.hero-art .bulb',{opacity:.55,duration:1.4,repeat:-1,yoyo:true,ease:'sine.inOut',delay:3.2,stagger:.3});
+  gsap.to('.hero-art svg',{yPercent:8,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
+
+  // cards rise once as their group enters
+  ScrollTrigger.batch('[data-rise]',{start:'top 88%',once:true,onEnter:els=>gsap.to(els,{opacity:1,y:0,duration:.8,stagger:.08,ease:'power3.out'})});
+  document.documentElement.classList.add('js-motion');
+  ScrollTrigger.refresh();
+
+  // statement: words light up as you read down
+  const sw=gsap.utils.toArray('#stmt .sw');
+  if(sw.length)gsap.to(sw,{opacity:1,stagger:.08,ease:'none',scrollTrigger:{trigger:'#stmt',start:'top 75%',end:'bottom 45%',scrub:.6}});
+
+  // capabilities: horizontal travel while pinned (desktop only)
+  ScrollTrigger.matchMedia({'(min-width: 1024px)':()=>{
+    const tr=document.getElementById('capsTrack');if(!tr)return;
+    const dist=()=>Math.max(0,tr.scrollWidth-innerWidth);
+    gsap.to(tr,{x:()=>-dist(),ease:'none',scrollTrigger:{trigger:'#capabilities',start:'top top',end:()=>'+='+dist(),pin:true,scrub:.8,invalidateOnRefresh:true,anticipatePin:1}});
+  }});
+
+  gsap.to('#progress',{scaleX:1,ease:'none',scrollTrigger:{start:0,end:'max',scrub:.3}});
+  document.querySelectorAll('.nav-links a[href^="#"]').forEach(a=>{const t=document.querySelector(a.getAttribute('href'));if(!t||a.getAttribute('href')==='#')return;
+    ScrollTrigger.create({trigger:t,start:'top 45%',end:'bottom 45%',onToggle:e=>a.classList.toggle('active',e.isActive)})});
+  // formula assembles term by term
+  gsap.from('#formula [data-f]',{y:40,opacity:0,duration:.7,stagger:.12,ease:'power3.out',scrollTrigger:{trigger:'#formula',start:'top 80%'}});
+  // photo band parallax
+  gsap.to('[data-par]',{yPercent:10,ease:'none',scrollTrigger:{trigger:'.band',start:'top bottom',end:'bottom top',scrub:true}});
+}
+
+fetch('/api/content').then(r=>r.json()).then(c=>{C=c;render()});
+</script>
+</body>
+</html>

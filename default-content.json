@@ -24,16 +24,6 @@
         "enabled": true
       },
       {
-        "label": "Services",
-        "href": "#capabilities",
-        "enabled": false
-      },
-      {
-        "label": "Case Studies",
-        "href": "#",
-        "enabled": false
-      },
-      {
         "label": "Contact",
         "href": "#contact",
         "enabled": true
@@ -316,5 +306,40 @@
         "href": "#home"
       }
     ]
+  },
+  "site2": {
+    "brand": "BEDROC",
+    "heroTitle": "Ground engineering across India",
+    "heroLead": "We stabilise slopes, grout voids, support tunnels and strengthen foundations for highways, railways, mines and dams. Twelve methods, each set to the site’s geology.",
+    "servicesTitle": "Twelve ground interventions in four groups",
+    "servicesLead": "Each group covers one kind of ground work. Point at a group to see it on site.",
+    "methodTitle": "Our method on difficult ground",
+    "methodLead": "Technical maturity, rapid mobilisation and custom engineering add up to work that holds.",
+    "chapters": [
+      {
+        "title": "Read the ground before the method",
+        "text": "A team with long experience in complex stabilisation studies the geology, access and safety limits of each site."
+      },
+      {
+        "title": "Design a method for this site",
+        "text": "No standard templates. Each intervention is engineered and value-engineered for the condition in front of us."
+      },
+      {
+        "title": "Mobilise to remote and high-risk zones",
+        "text": "Crews and rigs reach urban, hilly, remote and mining sites anywhere in India at short notice."
+      },
+      {
+        "title": "Execute safety first",
+        "text": "Method-led site work, checked stage by stage, from the first anchor to the last metre of wall."
+      }
+    ],
+    "problemsTitle": "Eight ground problems and the work that fixes each",
+    "sectorsTitle": "Work across six infrastructure sectors",
+    "sectorsLead": "Urban, remote, hilly, mining and high-risk zones, in every part of India.",
+    "enquiryTitle": "Contact for project enquiries",
+    "enquiryLead": "Tell us where the site is, what the ground is doing and when the work has to start. Replies come by email.",
+    "closeTitle": "Precision. Stability. Delivered.",
+    "closeLead": "Ground engineering for projects in every part of India.",
+    "footerLede": "Ground engineering and geotechnical works."
   }
 }
